@@ -207,6 +207,7 @@ void abFree(struct abuf *ab) {
 
 /*** output ***/
 void editorDrawRows(struct abuf *ab) {
+    find_sum(sum, data);
     num_rows = 4, num_cols = 5;
     for (int row = 0; row <= num_rows * 4; ++row) {
         if (row % 4 == 0) {
@@ -316,7 +317,7 @@ void editorMoveCursor(int key) {
             }
             break;
         case ARROW_RIGHT:
-            if ((E.cx + 6) < (num_cols * 6)) {
+            if ((E.cx + 6) < ((num_cols-1) * 6)) {
                 E.cx += 6;
             }
             break;
