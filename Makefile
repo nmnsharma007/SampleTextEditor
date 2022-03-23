@@ -4,4 +4,4 @@ kilo: kilo.c utils.c
 	$(CC) -o grades kilo.o utils.c
 
 clean:
-	rm kilo
+	rm kilo.o utils.o grades
