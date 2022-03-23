@@ -26,6 +26,7 @@ enum editorKey {
 /*** data ***/
 
 char data[4][4] = { { '1', '2', '3', '4' }, { '2', '3', '4', '5' }, { '3', '4', '5', '6' }, { '4', '5', '6', '7' } };
+char sum[4][10] = { "10", "14", "18", "22" };
 int num_rows;
 int num_cols;
 
@@ -143,16 +144,16 @@ void editorAppendRow(char *s, size_t len) {
     ++E.numrows;
 }
 
-void editorRowInsertChar(erow *row, int at, int c) {
-    if (at < 0 || at > row->size) {
-        at = row->size;
-    }
-    row->chars = realloc(row->chars, row->size + 2);
-    memmove(&row->chars[at + 1], &row->chars[at], row->size - at + 1);
-    row->size++;
-    row->chars[at] = c;
-    //        editorUpdateRow(row);
-}
+// void editorRowInsertChar(erow *row, int at, int c) {
+//     if (at < 0 || at > row->size) {
+//         at = row->size;
+//     }
+//     row->chars = realloc(row->chars, row->size + 2);
+//     memmove(&row->chars[at + 1], &row->chars[at], row->size - at + 1);
+//     row->size++;
+//     row->chars[at] = c;
+//     //        editorUpdateRow(row);
+// }
 
 void editorInsertChar(int c) {
     data[E.cy / 4][E.cx / 6] = c;
@@ -205,24 +206,41 @@ void abFree(struct abuf *ab) {
 
 /*** output ***/
 void editorDrawRows(struct abuf *ab) {
-    num_rows = 4, num_cols = 4;
+    num_rows = 4, num_cols = 5;
     for (int row = 0; row <= num_rows * 4; ++row) {
         if (row % 4 == 0) {
-            for (int col = 0; col <= num_cols * 6; ++col) {
+            int len = (num_cols - 1) * 6 + 7;
+            for (int col = 0; col <= len; ++col) {
                 if (col % 6 == 0) {
-                    abAppend(ab, "+", 1);
+                    if (col != len - 1)
+                        abAppend(ab, "+", 1);
+                    else
+                        abAppend(ab, "-", 1);
                 } else {
-                    abAppend(ab, "~", 1);
+                    if (col == len)
+                        abAppend(ab, "+", 1);
+                    else
+                        abAppend(ab, "-", 1);
                 }
             }
         } else {
-            for (int col = 0; col <= num_cols * 6; ++col) {
+            int len = (num_cols - 1) * 6 + 7;
+            for (int col = 0; col <= len; ++col) {
                 if (col % 6 == 0) {
-                    abAppend(ab, "+", 1);
+                    if (col == len - 1)
+                        abAppend(ab, " ", 1);
+                    else
+                        abAppend(ab, "+", 1);
+                } else if (col == len - 4 && (row+2) % 4 == 0) {
+                    abAppend(ab, sum[row/4], 2);
+                    col++;
                 } else if ((col + 3) % 6 == 0 && (row + 2) % 4 == 0) {
                     abAppend(ab, &data[row / 4][col / 6], 1);
                 } else {
-                    abAppend(ab, " ", 1);
+                    if (col == len)
+                        abAppend(ab, "+", 1);
+                    else
+                        abAppend(ab, " ", 1);
                 }
             }
         }
