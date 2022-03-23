@@ -25,7 +25,8 @@ enum editorKey {
 };
 
 /*** data ***/
-
+char faculty[6][3] = {"  ", "F1", "F2", "F3", "F4", "  "};
+char student[5][3] = {"  ","S1", "S2", "S3", "S4"};
 char data[4][4] = { { '1', '2', '3', '4' }, { '2', '3', '4', '5' }, { '3', '4', '5', '6' }, { '4', '5', '6', '7' } };
 char sum[4][10] = { "10", "14", "18", "22" };
 int num_rows;
@@ -157,7 +158,7 @@ void editorAppendRow(char *s, size_t len) {
 // }
 
 void editorInsertChar(int c) {
-    data[E.cy / 4][E.cx / 6] = c;
+    data[E.cy / 4 - 1][E.cx / 6 - 1] = c;
 }
 
 /*** file i/o ***/
@@ -208,7 +209,7 @@ void abFree(struct abuf *ab) {
 /*** output ***/
 void editorDrawRows(struct abuf *ab) {
     find_sum(sum, data);
-    num_rows = 4, num_cols = 5;
+    num_rows = 5, num_cols = 6;
     for (int row = 0; row <= num_rows * 4; ++row) {
         if (row % 4 == 0) {
             int len = (num_cols - 1) * 6 + 7;
@@ -232,15 +233,21 @@ void editorDrawRows(struct abuf *ab) {
                     if (col == len - 1)
                         abAppend(ab, " ", 1);
                     else
-                        abAppend(ab, "+", 1);
-                } else if (col == len - 4 && (row+2) % 4 == 0) {
-                    abAppend(ab, sum[row/4], 2);
+                        abAppend(ab, "|", 1);
+                } else if (row > 2 && col == len - 4 && (row+2) % 4 == 0) {
+                    abAppend(ab, sum[row/4 - 1], 2);
                     col++;
-                } else if ((col + 3) % 6 == 0 && (row + 2) % 4 == 0) {
-                    abAppend(ab, &data[row / 4][col / 6], 1);
+                } else if(col == 3 && (row + 2) % 4 == 0){
+                    abAppend(ab, student[row/4], 2);
+                    col++;
+                } else if(row == 2 && (col+3) % 6 == 0){
+                    abAppend(ab, faculty[col/6], 2);
+                    col++;
+                }  else if (row > 2 && col > 3 && (col + 3) % 6 == 0 && (row + 2) % 4 == 0) {
+                    abAppend(ab, &data[row / 4 - 1][col / 6 - 1], 1);
                 } else {
                     if (col == len)
-                        abAppend(ab, "+", 1);
+                        abAppend(ab, "|", 1);
                     else
                         abAppend(ab, " ", 1);
                 }
@@ -312,7 +319,7 @@ void editorRefreshScreen() {
 void editorMoveCursor(int key) {
     switch (key) {
         case ARROW_LEFT:
-            if ((E.cx - 6) > 0) {
+            if ((E.cx - 12) > 0) {
                 E.cx -= 6;
             }
             break;
@@ -322,7 +329,7 @@ void editorMoveCursor(int key) {
             }
             break;
         case ARROW_UP:
-            if ((E.cy - 4) > 0) {
+            if ((E.cy - 8) > 0) {
                 E.cy -= 4;
             }
             break;
@@ -387,8 +394,8 @@ void editorProcessKeypress() {
 
 /*** init ***/
 void initEditor() {
-    E.cx = 4;
-    E.cy = 3;
+    E.cx = 10;
+    E.cy = 7;
     if (getWindowSize(&E.screenrows, &E.screencols) == -1) {
         die("getWindowSize");
     }
