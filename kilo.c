@@ -233,7 +233,7 @@ void editorDrawRows(struct abuf *ab) {
                     if (col == len - 1)
                         abAppend(ab, " ", 1);
                     else
-                        abAppend(ab, "+", 1);
+                        abAppend(ab, "|", 1);
                 } else if (row > 2 && col == len - 4 && (row+2) % 4 == 0) {
                     abAppend(ab, sum[row/4 - 1], 2);
                     col++;
@@ -247,7 +247,7 @@ void editorDrawRows(struct abuf *ab) {
                     abAppend(ab, &data[row / 4 - 1][col / 6 - 1], 1);
                 } else {
                     if (col == len)
-                        abAppend(ab, "+", 1);
+                        abAppend(ab, "|", 1);
                     else
                         abAppend(ab, " ", 1);
                 }
@@ -394,8 +394,8 @@ void editorProcessKeypress() {
 
 /*** init ***/
 void initEditor() {
-    E.cx = 4;
-    E.cy = 3;
+    E.cx = 10;
+    E.cy = 7;
     if (getWindowSize(&E.screenrows, &E.screencols) == -1) {
         die("getWindowSize");
     }
