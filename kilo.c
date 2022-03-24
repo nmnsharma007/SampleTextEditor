@@ -382,8 +382,7 @@ void editorProcessKeypress() {
 
     switch (c) {
         case 27:
-            write(STDOUT_FILENO, "\x1b[2J", 4);
-            write(STDOUT_FILENO, "\x1b[H", 3);
+            write(STDOUT_FILENO, "\x1b[24;1H", 7);
             exit(0);
             break;
         case ARROW_DOWN:
