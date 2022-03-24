@@ -2,7 +2,6 @@
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 #define _GNU_SOURCE
-#include "utils.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -12,6 +11,8 @@
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
+
+#include "utils.h"
 
 /*** defines ***/
 #define CTRL_KEY(k) ((k)&0x1f)
@@ -25,8 +26,8 @@ enum editorKey {
 };
 
 /*** data ***/
-char faculty[6][3] = {"  ", "F1", "F2", "F3", "F4", "  "};
-char student[5][3] = {"  ","S1", "S2", "S3", "S4"};
+char faculty[6][3] = { "  ", "F1", "F2", "F3", "F4", "  " };
+char student[5][3] = { "  ", "S1", "S2", "S3", "S4" };
 char data[4][4] = { { '1', '2', '3', '4' }, { '2', '3', '4', '5' }, { '3', '4', '5', '6' }, { '4', '5', '6', '7' } };
 char sum[4][10] = { "10", "14", "18", "22" };
 int num_rows;
@@ -234,16 +235,16 @@ void editorDrawRows(struct abuf *ab) {
                         abAppend(ab, " ", 1);
                     else
                         abAppend(ab, "|", 1);
-                } else if (row > 2 && col == len - 4 && (row+2) % 4 == 0) {
-                    abAppend(ab, sum[row/4 - 1], 2);
+                } else if (row > 2 && col == len - 4 && (row + 2) % 4 == 0) {
+                    abAppend(ab, sum[row / 4 - 1], 2);
                     col++;
-                } else if(col == 3 && (row + 2) % 4 == 0){
-                    abAppend(ab, student[row/4], 2);
+                } else if (col == 3 && (row + 2) % 4 == 0) {
+                    abAppend(ab, student[row / 4], 2);
                     col++;
-                } else if(row == 2 && (col+3) % 6 == 0){
-                    abAppend(ab, faculty[col/6], 2);
+                } else if (row == 2 && (col + 3) % 6 == 0) {
+                    abAppend(ab, faculty[col / 6], 2);
                     col++;
-                }  else if (row > 2 && col > 3 && (col + 3) % 6 == 0 && (row + 2) % 4 == 0) {
+                } else if (row > 2 && col > 3 && (col + 3) % 6 == 0 && (row + 2) % 4 == 0) {
                     abAppend(ab, &data[row / 4 - 1][col / 6 - 1], 1);
                 } else {
                     if (col == len)
@@ -255,6 +256,11 @@ void editorDrawRows(struct abuf *ab) {
         }
         abAppend(ab, "\r\n", 2);
     }
+
+    char buf[32];
+    snprintf(buf, sizeof(buf), "\nS%d F%d\n", E.cy / 4, E.cx / 6);
+    abAppend(ab, buf, strlen(buf));
+
     /*int y;
     for (y = 0; y < E.screenrows; y++) {
             if (y >= E.numrows) {
@@ -303,7 +309,7 @@ void editorRefreshScreen() {
     abAppend(&ab, "\x1b[H", 3);
 
     editorDrawRows(&ab);
-    editorDrawStatusBar(&ab);
+    // editorDrawStatusBar(&ab);
 
     char buf[32];
     snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy, E.cx);
@@ -324,7 +330,7 @@ void editorMoveCursor(int key) {
             }
             break;
         case ARROW_RIGHT:
-            if ((E.cx + 6) < ((num_cols-1) * 6)) {
+            if ((E.cx + 6) < ((num_cols - 1) * 6)) {
                 E.cx += 6;
             }
             break;
@@ -342,7 +348,7 @@ void editorMoveCursor(int key) {
 }
 
 void editMode() {
-    char prevNum = data[E.cy / 4][E.cx / 6];
+    char prevNum = data[E.cy / 4 - 1][E.cx / 6 - 1];
     editorInsertChar(' ');
     while (1) {
         editorRefreshScreen();
@@ -351,7 +357,7 @@ void editMode() {
             editorInsertChar(prevNum);
             break;
         }
-        if (c == '\r' && data[E.cy / 4][E.cx / 6] != ' ') {
+        if (c == '\r' && data[E.cy / 4 - 1][E.cx / 6 - 1] != ' ') {
             break;
         }
         switch (c) {
