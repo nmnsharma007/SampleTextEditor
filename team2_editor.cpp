@@ -15,6 +15,7 @@
 #include <vector>
 #include <fcntl.h>
 #include <string>
+#include <algorithm>
 
 void writeData();
 
@@ -86,6 +87,24 @@ void find_sum(vector<string>& sum, vector<vector<char>>& data) {
         else
             sum[i] = to_string(total);
     }
+}
+
+void writeData(){
+    int fd = open("marks.csv", O_WRONLY);
+    lseek(fd, 0, SEEK_SET);
+    system("echo \"\" > marks.csv");
+    string s;
+
+    for(int i=0; i<original_data.size(); i++){
+        s += original_data[i][0];
+        for(int j=1; j<original_data[i].size(); j++){
+            s += ",";
+            s += original_data[i][j];
+        }
+        s += "\n";
+    }
+
+    write(fd, &s[0], s.length());
 }
 
 
@@ -427,6 +446,19 @@ void editorProcessKeypress() {
                 editMode();
             }
             break;
+        case 's':
+            if(username[0] == 'F'){
+                vector<pair<char,string>> vec;
+                for(int i = 0; i < (int)student.size()-1;++i){
+                    vec.push_back({data[i][0],student[i+1]});
+                }
+                sort(vec.begin(),vec.end());
+                for(int i = 0; i < (int)vec.size();++i){
+                    student[i+1] = vec[i].second;
+                    data[i][0] = vec[i].first;
+                }
+                
+            }
     }
 
     // move data to original data
@@ -434,7 +466,7 @@ void editorProcessKeypress() {
         original_data = data;
     } else if (username[0] == 'F') {
         for (int i = 0; i < data.size(); ++i) {
-            original_data[i][username[1]-'0'-1] = data[i][0];
+            original_data[student[i+1][1]-'0'-1][username[1]-'0'-1] = data[i][0];
         }
     }
     writeData();
@@ -493,24 +525,6 @@ void initOtherData(){
     }
 }
 
-void writeData(){
-    int fd = open("marks.csv", O_WRONLY);
-    lseek(fd, 0, SEEK_SET);
-    system("echo \"\" > marks.csv");
-    string s;
-
-    for(int i=0; i<original_data.size(); i++){
-        s += original_data[i][0];
-        for(int j=1; j<original_data[i].size(); j++){
-            s += ",";
-            s += original_data[i][j];
-        }
-        s += "\n";
-    }
-
-    write(fd, &s[0], s.length());
-}
-
 void printData(){
     for(auto x : original_data){
         for(auto y : x){
@@ -538,7 +552,7 @@ void printAverageMarks(){    //Average marks of class in a subject taught by a p
     for(int i = 0; i < data.size(); i++){
         sum += (data[i][0] - '0');
     }
-    cout << "Average marsk of the class : " << sum/count << endl;
+    cout << "Average marks of the class : " << sum/count << endl;
 }
 
 void printHighestAndLowestMarks(){    //Highest and lowest marks of class in a subject taught by a particular faculty
