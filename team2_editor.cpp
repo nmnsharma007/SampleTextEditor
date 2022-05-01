@@ -14,6 +14,7 @@
 #include <iostream>
 #include <vector>
 #include <fcntl.h>
+#include <string>
 
 
 using namespace std;
@@ -55,7 +56,11 @@ struct editorConfig {
 };
 
 struct editorConfig E;
+<<<<<<< HEAD
 string username = "F2";
+=======
+string username = "F1";
+>>>>>>> ae7bdaa7658e63a49999258832a832a95f9608bb
 
 /*** terminal ***/
 void die(const char *s) {
@@ -517,6 +522,28 @@ void printData(){
     cout << endl;
 }
 
+void printAverageMarks(int col){    //Average marks of class in a subject taught by a particular faculty
+    int sum = 0;
+    int count = data.size();
+    for(int i = 0; i < data.size(); i++){
+        sum += (data[i][col] - '0');
+    }
+    cout << "Average marsk of the class : " << sum/count << endl;
+}
+
+void printHighestAndLowestMarks(int col){    //Highest and lowest marks of class in a subject taught by a particular faculty
+    int max = INT32_MIN;
+    int min = INT32_MAX;
+    for(int i = 0; i < data.size(); i++){
+         if((data[i][col] - '0') > max)
+            max = data[i][col] - '0';
+        if((data[i][col] - '0') < min)
+            min = data[i][col] - '0'; 
+    }
+    cout << "Highest marks : "<< max << endl;
+    cout << "Lowest marks : " << min << endl;
+}
+
 int main(int argc, char *argv[]) {
     // struct passwd* userinfo = getpwuid(getuid());
     // string username = userinfo->pw_name;
@@ -553,15 +580,35 @@ int main(int argc, char *argv[]) {
     }
     
 
-    enableRawMode();
-    initEditor();
-    if (argc >= 2) {
-        editorOpen(argv[1]);
+        initOtherData();
+
+        cout << "Press 1 : Marks of the class\nPress 2 : Average marks of the class\nPress 3 : Highest and Lowest marks of the class" << endl;
+        int c;
+        cin >> c;
+        switch (c) {
+            case 1:
+                enableRawMode();
+                initEditor();
+                if (argc >= 2) {
+                    editorOpen(argv[1]);
+                }
+                while (1) {
+                    editorRefreshScreen();
+                    editorProcessKeypress();
+                }
+                break;
+            case 2:
+                printAverageMarks(username[1] - '0' - 1);
+                break;
+            case 3:
+                printHighestAndLowestMarks(username[1] - '0' - 1);
+                break;
+            default:
+                cout << "Invalid Input !" << endl;
+        }
+
     }
-    while (1) {
-        editorRefreshScreen();
-        editorProcessKeypress();
-    }
+    
     return 0;
 }
 
