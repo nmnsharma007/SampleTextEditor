@@ -429,13 +429,14 @@ void editorProcessKeypress() {
     }
 
     // move data to original data
-    for (int i = 0; i < data.size(); ++i) {
-        for (int j = 0; j < data[0].size(); ++j) {
-            original_data[i][j] = data[i][j];
+    if (username == "admin") {
+        original_data = data;
+    } else if (username[0] == 'F') {
+        for (int i = 0; i < data.size(); ++i) {
+            original_data[i][username[1]-'0'-1] = data[i][0];
         }
     }
-
-    // writeData();
+    writeData();
 }
 
 /*** init ***/
