@@ -59,7 +59,7 @@ struct editorConfig {
 };
 
 struct editorConfig E;
-string username = "S1";
+string username = "F1";
 
 /*** terminal ***/
 void die(const char *s) {
@@ -145,16 +145,6 @@ void enableRawMode() {
 }
 
 int editorReadKey() {
-    // int nread;
-    // char c;
-    // while ((nread = read(STDIN_FILENO, &c, 1)) != 1)
-    // {
-    //         if (nread == -1 && errno != EAGAIN)
-    //         {
-    //                 die("read");
-    //         }
-    // }
-    // return c;
 
     int nread;
     char c;
@@ -209,17 +199,6 @@ void editorAppendRow(char *s, size_t len) {
     E.row[at].chars[len] = '\0';
     ++E.numrows;
 }
-
-// void editorRowInsertChar(erow *row, int at, int c) {
-//     if (at < 0 || at > row->size) {
-//         at = row->size;
-//     }
-//     row->chars = realloc(row->chars, row->size + 2);
-//     memmove(&row->chars[at + 1], &row->chars[at], row->size - at + 1);
-//     row->size++;
-//     row->chars[at] = c;
-//     //        editorUpdateRow(row);
-// }
 
 void editorInsertChar(int c) {
     data[E.cy / 4 - 1][E.cx / 6 - 1] = c;
@@ -328,34 +307,6 @@ void editorDrawRows(struct abuf *ab) {
     snprintf(buf, sizeof(buf), "\nS%d F%d\n", E.cy / 4, E.cx / 6);
     abAppend(ab, buf, strlen(buf));
 
-    /*int y;
-    for (y = 0; y < E.screenrows; y++) {
-            if (y >= E.numrows) {
-                    if (E.numrows == 0 && y == E.screenrows / 3) {
-                            char welcome[80];
-                            int welcomelen = snprintf(welcome, sizeof(welcome),
-                            "Kilo editor -- version %s", KILO_VERSION);
-                            if (welcomelen > E.screencols) welcomelen = E.screencols;
-                            int padding = (E.screencols - welcomelen) / 2;
-                            if (padding) {
-                                    abAppend(ab, "~", 1);
-                                    padding--;
-                            }
-                            while (padding--) abAppend(ab, " ", 1);
-                            abAppend(ab, welcome, welcomelen);
-                    } else {
-                            abAppend(ab, "~", 1);
-                    }
-            } else {
-                    int len = E.row[y].size;
-                    if (len > E.screencols) len = E.screencols;
-                    abAppend(ab, E.row[y].chars, len);
-            }
-            abAppend(ab, "\x1b[K", 3);
-            if (y < E.screenrows - 1) {
-                    abAppend(ab, "\r\n", 2);
-            }
-    }*/
 }
 
 void editorDrawStatusBar(struct abuf *ab) {
@@ -376,7 +327,6 @@ void editorRefreshScreen() {
     abAppend(&ab, "\x1b[H", 3);
 
     editorDrawRows(&ab);
-    // editorDrawStatusBar(&ab);
 
     char buf[32];
     snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy, E.cx);
@@ -498,6 +448,7 @@ void editorProcessKeypress() {
                 }
                 
             }
+            break;
     }
 
     // move data to original data
@@ -717,7 +668,7 @@ int main(int argc, char *argv[]) {
         initOtherData();
         faculty[1][1] = index + '0' + 1;    
 
-        cout << "Press 1 : Marks of the class\nPress 2 : Average marks of the class\nPress 3 : Highest and Lowest marks of the class" << endl;
+        cout << "Press 1 : Marks of the class\nPress 2 : Average marks of the class\nPress 3 : Highest and Lowest marks of the class\nPress 4: Give grace marks\n" << endl;
         int c;
         cin >> c;
         switch (c) {
@@ -737,6 +688,27 @@ int main(int argc, char *argv[]) {
                 break;
             case 3:
                 printHighestAndLowestMarks();
+                break;
+            case 4:
+                cout << "Enter the number of grace marks: \n";
+                int marks;
+                cin >> marks;
+                for(int i = 0; i < (int)data.size();++i){
+                    data[i][0] = char(min(9,data[i][0] - '0' + marks) + '0');
+                }
+                for(int i = 0; i < (int)data.size();++i){
+                    original_data[i][index] = data[i][0];
+                }
+                writeData();
+                enableRawMode();
+                initEditor();
+                if (argc >= 2) {
+                    editorOpen(argv[1]);
+                }
+                while (1) {
+                    editorRefreshScreen();
+                    editorProcessKeypress();
+                }
                 break;
             default:
                 cout << "Invalid Input !" << endl;
