@@ -449,6 +449,9 @@ void initData(){
     while(read(fd, &c, 1) == 1){
         if(c == ',')
             continue;
+        else if(c == '\r'){
+            continue;
+        }
         else if(c == '\n'){
             original_data.push_back(temp);
             temp.clear();
