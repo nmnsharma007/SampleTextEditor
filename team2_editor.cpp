@@ -549,7 +549,7 @@ int main(int argc, char *argv[]) {
             data.push_back(temp);
         }
         initOtherData();
-        // faculty[1][0] = index + '0';
+        faculty[1][1] = index + '0' + 1;
     }
     
 
