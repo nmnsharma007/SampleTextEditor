@@ -1,4 +1,4 @@
-/*** includes ***/
+/* includes */
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 // #define _GNU_SOURCE
@@ -19,7 +19,7 @@
 
 using namespace std;
 
-/*** defines ***/
+/* defines */
 #define CTRL_KEY(k) ((k)&0x1f)
 #define KILO_VERSION "1.0.0"
 
@@ -30,7 +30,7 @@ enum editorKey {
     ARROW_DOWN
 };
 
-/*** data ***/
+/* data */
 
 vector<vector<char>> original_data;
 
@@ -58,7 +58,7 @@ struct editorConfig {
 struct editorConfig E;
 string username = "admin";
 
-/*** terminal ***/
+/* terminal */
 void die(const char *s) {
     write(STDOUT_FILENO, "\x1b[2J", 4);
     write(STDOUT_FILENO, "\x1b[H", 3);
@@ -160,7 +160,7 @@ int getWindowSize(int *rows, int *cols) {
     }
 }
 
-/*** row operations ***/
+/* row operations */
 
 void editorAppendRow(char *s, size_t len) {
     E.row = (erow *)realloc(E.row, sizeof(erow) * (E.numrows + 1));
@@ -187,7 +187,7 @@ void editorInsertChar(int c) {
     data[E.cy / 4 - 1][E.cx / 6 - 1] = c;
 }
 
-/*** file i/o ***/
+/* file i/o */
 void editorOpen(char *filename) {
     FILE *fp = fopen(filename, "r");
     if (!fp) {
@@ -207,7 +207,7 @@ void editorOpen(char *filename) {
     fclose(fp);
 }
 
-/*** append buffer ***/
+/* append buffer */
 struct abuf {
     char *b;
     int len;
@@ -232,7 +232,7 @@ void abFree(struct abuf *ab) {
     free(ab->b);
 }
 
-/*** output ***/
+/* output */
 void editorDrawRows(struct abuf *ab) {
     find_sum(sum, data);
     for (int row = 0; row <= num_rows * 4; ++row) {
@@ -350,7 +350,7 @@ void editorRefreshScreen() {
     abFree(&ab);
 }
 
-/*** input ***/
+/* input */
 void editorMoveCursor(int key) {
     switch (key) {
         case ARROW_LEFT:
@@ -429,7 +429,7 @@ void editorProcessKeypress() {
     }
 }
 
-/*** init ***/
+/* init */
 void initEditor() {
     E.cx = 10;
     E.cy = 7;
@@ -449,6 +449,9 @@ void initData(){
     while(read(fd, &c, 1) == 1){
         if(c == ',')
             continue;
+        else if(c == '\r'){
+            continue;
+        }
         else if(c == '\n'){
             original_data.push_back(temp);
             temp.clear();
@@ -635,8 +638,3 @@ int main(int argc, char *argv[]) {
     
     return 0;
 }
-
-
-// user
-// read, write
-
