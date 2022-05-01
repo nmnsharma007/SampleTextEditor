@@ -1,18 +1,22 @@
 /*** includes ***/
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
-#define _GNU_SOURCE
-#include <ctype.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+// #define _GNU_SOURCE
+#include <cctype>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
+#include <iostream>
+#include <vector>
+#include <fcntl.h>
 
-#include "utils.h"
+
+using namespace std;
 
 /*** defines ***/
 #define CTRL_KEY(k) ((k)&0x1f)
@@ -26,10 +30,13 @@ enum editorKey {
 };
 
 /*** data ***/
-char faculty[6][3] = { "  ", "F1", "F2", "F3", "F4", "  " };
-char student[5][3] = { "  ", "S1", "S2", "S3", "S4" };
-char data[4][4] = { { '1', '2', '3', '4' }, { '2', '3', '4', '5' }, { '3', '4', '5', '6' }, { '4', '5', '6', '7' } };
-char sum[4][10] = { "10", "14", "18", "22" };
+
+vector<vector<char>> original_data;
+
+vector<string> faculty;
+vector<string> student;
+vector<vector<char>> data;
+vector<string> sum;
 int num_rows;
 int num_cols;
 
@@ -62,6 +69,22 @@ void disableRawMode() {
         die("tcsetattr");
     }
 }
+
+void find_sum(vector<string>& sum, vector<vector<char>>& data) {
+    for (int i = 0; i < data.size(); i++) {
+        int total = 0;
+        for (int j = 0; j < data[0].size(); j++) {
+            if (data[i][j] != ' '){
+                total += (data[i][j] - '0');
+            }
+        }
+        if(total < 10)  
+            sum[i] = "0" + to_string(total);
+        else
+            sum[i] = to_string(total);
+    }
+}
+
 
 void enableRawMode() {
     if (tcgetattr(STDIN_FILENO, &E.orig_termios) == -1) {
@@ -138,10 +161,10 @@ int getWindowSize(int *rows, int *cols) {
 /*** row operations ***/
 
 void editorAppendRow(char *s, size_t len) {
-    E.row = realloc(E.row, sizeof(erow) * (E.numrows + 1));
+    E.row = (erow *)realloc(E.row, sizeof(erow) * (E.numrows + 1));
     int at = E.numrows;
     E.row[at].size = len;
-    E.row[at].chars = malloc(len + 1);
+    E.row[at].chars = (char *)malloc(len + 1);
     memcpy(E.row[at].chars, s, len);
     E.row[at].chars[len] = '\0';
     ++E.numrows;
@@ -194,12 +217,12 @@ struct abuf {
     }
 
 void abAppend(struct abuf *ab, const char *s, int len) {
-    char *new = realloc(ab->b, ab->len + len);
-    if (new == NULL) {
+    char *new_ = (char *)realloc(ab->b, ab->len + len);
+    if (new_ == NULL) {
         return;
     }
-    memcpy(&new[ab->len], s, len);
-    ab->b = new;
+    memcpy(&new_[ab->len], s, len);
+    ab->b = new_;
     ab->len += len;
 }
 
@@ -210,7 +233,6 @@ void abFree(struct abuf *ab) {
 /*** output ***/
 void editorDrawRows(struct abuf *ab) {
     find_sum(sum, data);
-    num_rows = 5, num_cols = 6;
     for (int row = 0; row <= num_rows * 4; ++row) {
         if (row % 4 == 0) {
             int len = (num_cols - 1) * 6 + 7;
@@ -235,18 +257,23 @@ void editorDrawRows(struct abuf *ab) {
                         abAppend(ab, " ", 1);
                     else
                         abAppend(ab, "|", 1);
-                } else if (row > 2 && col == len - 4 && (row + 2) % 4 == 0) {
-                    abAppend(ab, sum[row / 4 - 1], 2);
+                } 
+                else if (row > 2 && col == len - 4 && (row + 2) % 4 == 0) {
+                    abAppend(ab, &sum[row / 4 - 1][0], 2);
                     col++;
-                } else if (col == 3 && (row + 2) % 4 == 0) {
-                    abAppend(ab, student[row / 4], 2);
+                } 
+                else if (col == 3 && (row + 2) % 4 == 0) {
+                    abAppend(ab, &student[row / 4][0], 2);
                     col++;
-                } else if (row == 2 && (col + 3) % 6 == 0) {
-                    abAppend(ab, faculty[col / 6], 2);
+                } 
+                else if (row == 2 && (col + 3) % 6 == 0) {
+                    abAppend(ab, &faculty[col / 6][0], 2);
                     col++;
-                } else if (row > 2 && col > 3 && (col + 3) % 6 == 0 && (row + 2) % 4 == 0) {
+                } 
+                else if (row > 2 && col > 3 && (col + 3) % 6 == 0 && (row + 2) % 4 == 0) {
                     abAppend(ab, &data[row / 4 - 1][col / 6 - 1], 1);
-                } else {
+                } 
+                else {
                     if (col == len)
                         abAppend(ab, "|", 1);
                     else
@@ -375,6 +402,7 @@ void editMode() {
                 break;
         }
     }
+    // writeData();
 }
 
 void editorProcessKeypress() {
@@ -408,7 +436,89 @@ void initEditor() {
     E.row = NULL;
 }
 
+void initData(){
+    int fd = open("marks.csv", O_RDWR);
+
+    char c;
+    vector<char> temp;
+    
+    while(read(fd, &c, 1) == 1){
+        if(c == ',')
+            continue;
+        else if(c == '\n'){
+            original_data.push_back(temp);
+            temp.clear();
+        }
+        else
+            temp.push_back(c);
+    }
+    if(temp.size() != 0){
+        original_data.push_back(temp);
+    }
+
+}
+
+void initOtherData(){
+    num_rows = data.size() + 1;
+    num_cols = data[0].size() + 2;
+
+    faculty.push_back("  ");
+    for(int i=1; i<=data[0].size(); i++){
+        faculty.push_back("F" + to_string(i));
+    }
+    faculty.push_back("  ");
+
+    student.push_back("  ");
+    for(int i=1; i<=data.size(); i++){
+        student.push_back("S" + to_string(i));
+        sum.push_back("00");
+    }
+}
+
+// void writeData(){
+//     int fd = open("marks.csv", O_RDWR);
+    
+// }
+
+void printData(){
+    for(auto x : original_data){
+        for(auto y : x){
+            cout << y << " ";
+        }
+        cout << endl;
+    }
+
+    for(auto x : faculty)
+        cout << x << " ";
+    cout << endl;
+
+    for(auto x : student)
+        cout << x << " ";
+    cout << endl;
+
+    for(auto x : sum)
+        cout << x << " ";
+    cout << endl;
+}
+
 int main(int argc, char *argv[]) {
+    // struct passwd* userinfo = getpwuid(getuid());
+    // string username = userinfo->pw_name;
+    string username = "admin";
+
+    initData();
+    // printData();
+    
+    if(username == "admin"){
+        data = original_data;
+        initOtherData();
+    }
+
+    // if(username[0] == 'S'){
+
+    // }
+    
+
     enableRawMode();
     initEditor();
     if (argc >= 2) {
@@ -420,3 +530,8 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 }
+
+
+// user
+// read, write
+
