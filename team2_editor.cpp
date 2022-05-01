@@ -1,4 +1,4 @@
-/* includes */
+/*** includes ***/
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 // #define _GNU_SOURCE
@@ -19,7 +19,7 @@
 
 using namespace std;
 
-/* defines */
+/*** defines ***/
 #define CTRL_KEY(k) ((k)&0x1f)
 #define KILO_VERSION "1.0.0"
 
@@ -30,9 +30,10 @@ enum editorKey {
     ARROW_DOWN
 };
 
-/* data */
+/*** data ***/
 
 vector<vector<char>> original_data;
+vector<vector<char>> undo_data;
 
 vector<string> faculty;
 vector<string> student;
@@ -58,7 +59,7 @@ struct editorConfig {
 struct editorConfig E;
 string username = "admin";
 
-/* terminal */
+/*** terminal ***/
 void die(const char *s) {
     write(STDOUT_FILENO, "\x1b[2J", 4);
     write(STDOUT_FILENO, "\x1b[H", 3);
@@ -85,6 +86,41 @@ void find_sum(vector<string>& sum, vector<vector<char>>& data) {
         else
             sum[i] = to_string(total);
     }
+}
+
+void initOtherData(){
+    num_rows = data.size() + 1;
+    num_cols = data[0].size() + 2;
+
+    faculty.push_back("  ");
+    for(int i=1; i<=data[0].size(); i++){
+        faculty.push_back("F" + to_string(i));
+    }
+    faculty.push_back("  ");
+
+    student.push_back("  ");
+    for(int i=1; i<=data.size(); i++){
+        student.push_back("S" + to_string(i));
+        sum.push_back("00");
+    }
+}
+
+void writeData(){
+    int fd = open("marks.csv", O_WRONLY);
+    lseek(fd, 0, SEEK_SET);
+    system("echo \"\" > marks.csv");
+    string s;
+
+    for(int i=0; i<original_data.size(); i++){
+        s += original_data[i][0];
+        for(int j=1; j<original_data[i].size(); j++){
+            s += ",";
+            s += original_data[i][j];
+        }
+        s += "\n";
+    }
+
+    write(fd, &s[0], s.length());
 }
 
 
@@ -160,7 +196,7 @@ int getWindowSize(int *rows, int *cols) {
     }
 }
 
-/* row operations */
+/*** row operations ***/
 
 void editorAppendRow(char *s, size_t len) {
     E.row = (erow *)realloc(E.row, sizeof(erow) * (E.numrows + 1));
@@ -187,7 +223,7 @@ void editorInsertChar(int c) {
     data[E.cy / 4 - 1][E.cx / 6 - 1] = c;
 }
 
-/* file i/o */
+/*** file i/o ***/
 void editorOpen(char *filename) {
     FILE *fp = fopen(filename, "r");
     if (!fp) {
@@ -207,7 +243,7 @@ void editorOpen(char *filename) {
     fclose(fp);
 }
 
-/* append buffer */
+/*** append buffer ***/
 struct abuf {
     char *b;
     int len;
@@ -232,7 +268,7 @@ void abFree(struct abuf *ab) {
     free(ab->b);
 }
 
-/* output */
+/*** output ***/
 void editorDrawRows(struct abuf *ab) {
     find_sum(sum, data);
     for (int row = 0; row <= num_rows * 4; ++row) {
@@ -350,7 +386,7 @@ void editorRefreshScreen() {
     abFree(&ab);
 }
 
-/* input */
+/*** input ***/
 void editorMoveCursor(int key) {
     switch (key) {
         case ARROW_LEFT:
@@ -426,10 +462,41 @@ void editorProcessKeypress() {
                 editMode();
             }
             break;
+        case 'u':
+            if(username[0] == 'F'){
+                int num_students = undo_data.size();
+                int num_faculty = undo_data[0].size();
+
+                int index = username[1] - '0' - 1;
+                for (int i = 0; i < num_students; i++) {
+                    vector<char> temp;
+                    temp.push_back(undo_data[i][index]);
+                    data.push_back(temp);
+                }
+                initOtherData();
+                faculty[1][1] = index + '0' + 1;
+            }
+            else if(username == "admin"){
+                data = undo_data;
+                initOtherData();
+            }
+            original_data = undo_data;
+            writeData();
+            break;
     }
+
+    // move data to original data
+    if (username == "admin") {
+        original_data = data;
+    } else if (username[0] == 'F') {
+        for (int i = 0; i < data.size(); ++i) {
+            original_data[i][username[1]-'0'-1] = data[i][0];
+        }
+    }
+    writeData();
 }
 
-/* init */
+/*** init ***/
 void initEditor() {
     E.cx = 10;
     E.cy = 7;
@@ -449,6 +516,9 @@ void initData(){
     while(read(fd, &c, 1) == 1){
         if(c == ',')
             continue;
+        else if(c == '\r'){
+            continue;
+        }
         else if(c == '\n'){
             original_data.push_back(temp);
             temp.clear();
@@ -459,42 +529,7 @@ void initData(){
     if(temp.size() != 0){
         original_data.push_back(temp);
     }
-
-}
-
-void initOtherData(){
-    num_rows = data.size() + 1;
-    num_cols = data[0].size() + 2;
-
-    faculty.push_back("  ");
-    for(int i=1; i<=data[0].size(); i++){
-        faculty.push_back("F" + to_string(i));
-    }
-    faculty.push_back("  ");
-
-    student.push_back("  ");
-    for(int i=1; i<=data.size(); i++){
-        student.push_back("S" + to_string(i));
-        sum.push_back("00");
-    }
-}
-
-void writeData(){
-    int fd = open("marks.csv", O_WRONLY);
-    lseek(fd, 0, SEEK_SET);
-    system("echo \"\" > marks.csv");
-    string s;
-
-    for(int i=0; i<original_data.size(); i++){
-        s += original_data[i][0];
-        for(int j=1; j<original_data[i].size(); j++){
-            s += ",";
-            s += original_data[i][j];
-        }
-        s += "\n";
-    }
-
-    write(fd, &s[0], s.length());
+    undo_data = original_data;
 }
 
 void printData(){
@@ -518,7 +553,7 @@ void printData(){
     cout << endl;
 }
 
-void printAverageMarks(int col){    //Average marks of class in a subject taught by a particular faculty
+void printAverageMarks(){    //Average marks of class in a subject taught by a particular faculty
     int sum = 0;
     int count = data.size();
     for(int i = 0; i < data.size(); i++){
@@ -527,14 +562,14 @@ void printAverageMarks(int col){    //Average marks of class in a subject taught
     cout << "Average marsk of the class : " << sum/count << endl;
 }
 
-void printHighestAndLowestMarks(int col){    //Highest and lowest marks of class in a subject taught by a particular faculty
+void printHighestAndLowestMarks(){    //Highest and lowest marks of class in a subject taught by a particular faculty
     int max = INT32_MIN;
     int min = INT32_MAX;
     for(int i = 0; i < data.size(); i++){
-         if((data[i][col] - '0') > max)
-            max = data[i][col] - '0';
-        if((data[i][col] - '0') < min)
-            min = data[i][col] - '0'; 
+         if((data[i][0] - '0') > max)
+            max = data[i][0] - '0';
+        if((data[i][0] - '0') < min)
+            min = data[i][0] - '0'; 
     }
     cout << "Highest marks : "<< max << endl;
     cout << "Lowest marks : " << min << endl;
@@ -546,7 +581,7 @@ int main(int argc, char *argv[]) {
     
 
     initData();
-    printData();
+    // printData();
 
     // writeData();
     
@@ -573,65 +608,79 @@ int main(int argc, char *argv[]) {
             }
             case 2: {
                 string s;
-                s = "pw useradd s"+to_string(original_data.size()+1)+" -G student";
+                s = "pw useradd S"+to_string(original_data.size()+1)+" -g student";
                 system(&s[0]);
 
+                original_data.push_back(vector<char>());
+                // Initialize new row with 0 marks
+                for(int i=0; i<original_data[0].size(); i++){
+                    original_data[original_data.size()-1].push_back('0');
+                }
+
+                writeData();
             }
             case 3: {
                 string s;
-                s = "pw useradd f"+to_string(original_data[0].size()+1)+" -G faculty";
+                s = "pw useradd F"+to_string(original_data[0].size()+1)+" -g faculty";
                 system(&s[0]);
+
+                // Add new column in original_data
+                for(int i=0; i<original_data.size(); i++){
+                    original_data[i].push_back('0');
+                }
+
+                writeData();
             }
         }
         
     }
 
-    // if(username[0] == 'S'){
-    //     int index = username[1] - '0' - 1;
-    //     data.push_back(original_data[index]);
-    // }
+    if(username[0] == 'S'){
+        int index = username[1] - '0' - 1;
+        data.push_back(original_data[index]);
+    }
 
-    // if (username[0] == 'F') {
-    //     // Initialize data array
-    //     int num_students = original_data.size();
-    //     int num_faculty = original_data[0].size();
+    if (username[0] == 'F') {
+        // Initialize data array
+        int num_students = original_data.size();
+        int num_faculty = original_data[0].size();
 
-    //     int index = username[1] - '0' - 1;
-    //     for (int i = 0; i < num_students; i++) {
-    //         vector<char> temp;
-    //         temp.push_back(original_data[i][index]);
-    //         data.push_back(temp);
-    //     }
+        int index = username[1] - '0' - 1;
+        for (int i = 0; i < num_students; i++) {
+            vector<char> temp;
+            temp.push_back(original_data[i][index]);
+            data.push_back(temp);
+        }
         
-    //     initOtherData();
-    //     faculty[1][1] = index + '0' + 1;    
+        initOtherData();
+        faculty[1][1] = index + '0' + 1;    
 
-    //     cout << "Press 1 : Marks of the class\nPress 2 : Average marks of the class\nPress 3 : Highest and Lowest marks of the class" << endl;
-    //     int c;
-    //     cin >> c;
-    //     switch (c) {
-    //         case 1:
-    //             enableRawMode();
-    //             initEditor();
-    //             if (argc >= 2) {
-    //                 editorOpen(argv[1]);
-    //             }
-    //             while (1) {
-    //                 editorRefreshScreen();
-    //                 editorProcessKeypress();
-    //             }
-    //             break;
-    //         case 2:
-    //             printAverageMarks(username[1] - '0' - 1);
-    //             break;
-    //         case 3:
-    //             printHighestAndLowestMarks(username[1] - '0' - 1);
-    //             break;
-    //         default:
-    //             cout << "Invalid Input !" << endl;
-    //     }
+        cout << "Press 1 : Marks of the class\nPress 2 : Average marks of the class\nPress 3 : Highest and Lowest marks of the class" << endl;
+        int c;
+        cin >> c;
+        switch (c) {
+            case 1:
+                enableRawMode();
+                initEditor();
+                if (argc >= 2) {
+                    editorOpen(argv[1]);
+                }
+                while (1) {
+                    editorRefreshScreen();
+                    editorProcessKeypress();
+                }
+                break;
+            case 2:
+                printAverageMarks();
+                break;
+            case 3:
+                printHighestAndLowestMarks();
+                break;
+            default:
+                cout << "Invalid Input !" << endl;
+        }
 
-    // }
+    }
     
     return 0;
 }
@@ -639,3 +688,4 @@ int main(int argc, char *argv[]) {
 
 // user
 // read, write
+
