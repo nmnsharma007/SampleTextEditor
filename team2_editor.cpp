@@ -465,7 +465,7 @@ void editorProcessKeypress() {
         original_data = data;
     } else if (username[0] == 'F') {
         for (int i = 0; i < data.size(); ++i) {
-            original_data[i][username[1]-'0'-1] = data[i][0];
+            original_data[student[i+1][1]-'0'-1][username[1]-'0'-1] = data[i][0];
         }
     }
     writeData();
