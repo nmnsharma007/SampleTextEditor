@@ -56,7 +56,11 @@ struct editorConfig {
 };
 
 struct editorConfig E;
+<<<<<<< HEAD
+string username = "F2";
+=======
 string username = "F1";
+>>>>>>> ae7bdaa7658e63a49999258832a832a95f9608bb
 
 /*** terminal ***/
 void die(const char *s) {
@@ -479,10 +483,23 @@ void initOtherData(){
     }
 }
 
-// void writeData(){
-//     int fd = open("marks.csv", O_RDWR);
-    
-// }
+void writeData(){
+    int fd = open("marks.csv", O_WRONLY);
+    lseek(fd, 0, SEEK_SET);
+    system("echo \"\" > marks.csv");
+    string s;
+
+    for(int i=0; i<original_data.size(); i++){
+        s += original_data[i][0];
+        for(int j=1; j<original_data[i].size(); j++){
+            s += ",";
+            s += original_data[i][j];
+        }
+        s += "\n";
+    }
+
+    write(fd, &s[0], s.length());
+}
 
 void printData(){
     for(auto x : original_data){
@@ -534,6 +551,8 @@ int main(int argc, char *argv[]) {
 
     initData();
     // printData();
+
+    // writeData();
     
     if(username == "admin"){
         data = original_data;
@@ -550,19 +569,16 @@ int main(int argc, char *argv[]) {
         int num_students = original_data.size();
         int num_faculty = original_data[0].size();
 
-        for (int i = 0; i < num_students; i++) {
-            vector<char> temp;
-            for (int j = 0; j < num_faculty; j++) {
-                temp.push_back(' ');
-            }
-            data.push_back(temp);
-        }
-
-
         int index = username[1] - '0' - 1;
         for (int i = 0; i < num_students; i++) {
-            data[i][index] = original_data[i][index];
+            vector<char> temp;
+            temp.push_back(original_data[i][index]);
+            data.push_back(temp);
         }
+        initOtherData();
+        faculty[1][1] = index + '0' + 1;
+    }
+    
 
         initOtherData();
 
