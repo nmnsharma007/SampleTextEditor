@@ -17,6 +17,7 @@
 #include <string>
 #include <algorithm>
 
+void writeData();
 
 using namespace std;
 
@@ -58,7 +59,7 @@ struct editorConfig {
 };
 
 struct editorConfig E;
-string username = "F1";
+string username = "S1";
 
 /*** terminal ***/
 void die(const char *s) {
@@ -589,6 +590,24 @@ void printHighestAndLowestMarks(){    //Highest and lowest marks of class in a s
     cout << "Lowest marks : " << min << endl;
 }
 
+void printAvgMarksforStudent(){
+    int numbOfStud = original_data.size();
+    int numbOfSub = original_data[0].size();
+    vector<int> avglist(numbOfStud);
+    for(int i = 0; i < numbOfSub; i++){
+        int sum = 0;
+        for(int j = 0; j < numbOfStud; j++){
+            sum += (original_data[j][i] - '0');
+        }
+        avglist[i] = sum/numbOfStud;
+    }
+    cout << "Average marks of the students in each subject : " << endl;
+    for(int i = 0; i < numbOfSub; i++){
+        cout << "Subject " << i+1 << " : " << avglist[i] << endl;
+    }
+
+}
+
 int main(int argc, char *argv[]) {
     // struct passwd* userinfo = getpwuid(getuid());
     // string username = userinfo->pw_name;
@@ -652,6 +671,35 @@ int main(int argc, char *argv[]) {
     if(username[0] == 'S'){
         int index = username[1] - '0' - 1;
         data.push_back(original_data[index]);
+
+        initOtherData();
+
+        cout << "Press 1 : View your marks\nPress 2 : View Average marks of class" << endl;
+
+        int c;
+        cin >> c;
+
+        switch(c){
+            case 1: {
+                enableRawMode();
+                initEditor();
+                if (argc >= 2) {
+                    editorOpen(argv[1]);
+                }
+                while (1) {
+                    editorRefreshScreen();
+                    editorProcessKeypress();
+                }
+                break;
+            }
+            case 2: {
+                printAvgMarksforStudent();
+                break;
+            }
+            default:
+                cout << "Invalid choice" << endl;
+                break;
+        }
     }
 
     if (username[0] == 'F') {
