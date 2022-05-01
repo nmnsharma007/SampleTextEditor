@@ -14,6 +14,7 @@
 #include <iostream>
 #include <vector>
 #include <fcntl.h>
+#include <string>
 
 
 using namespace std;
@@ -502,6 +503,28 @@ void printData(){
     for(auto x : sum)
         cout << x << " ";
     cout << endl;
+}
+
+void printAverageMarks(int col){    //Average marks of class in a subject taught by a particular faculty
+    int sum = 0;
+    int count = data.size();
+    for(int i = 0; i < data.size(); i++){
+        sum += (data[i][col] - '0');
+    }
+    cout << "Average marsk of the class : " << sum/count << endl;
+}
+
+void printHighestAndLowestMarks(int col){    //Highest and lowest marks of class in a subject taught by a particular faculty
+    int max = INT32_MIN;
+    int min = INT32_MAX;
+    for(int i = 0; i < data.size(); i++){
+         if((data[i][col] - '0') > max)
+            max = data[i][col] - '0';
+        if((data[i][col] - '0') < min)
+            min = data[i][col] - '0'; 
+    }
+    cout << "Highest marks : "<< max << endl;
+    cout << "Lowest marks : " << min << endl;
 }
 
 int main(int argc, char *argv[]) {
