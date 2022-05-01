@@ -16,6 +16,8 @@
 #include <fcntl.h>
 #include <string>
 #include <algorithm>
+#include <pwd.h>
+
 
 void writeData();
 
@@ -397,7 +399,7 @@ void editMode() {
 
 void editorProcessKeypress() {
     int c = editorReadKey();
-
+    
     switch (c) {
         case 27:
             write(STDOUT_FILENO, "\x1b[24;1H", 7);
@@ -449,6 +451,7 @@ void editorProcessKeypress() {
                 
             }
             break;
+    
     }
 
     // move data to original data
@@ -474,7 +477,10 @@ void initEditor() {
 }
 
 void initData(){
-    int fd = open("marks.csv", O_RDWR);
+    int fd = open("/home/finalProject/admin/SampleTextEditor/marks.csv", O_RDWR);
+    if(fd == -1){
+	    perror("Error");
+    }
 
     char c;
     vector<char> temp;
@@ -560,9 +566,9 @@ void printAvgMarksforStudent(){
 }
 
 int main(int argc, char *argv[]) {
-    // struct passwd* userinfo = getpwuid(getuid());
-    // string username = userinfo->pw_name;
-    
+    struct passwd* userinfo = getpwuid(getuid());
+    username = userinfo->pw_name;
+    setuid(1017); 
 
     initData();
     // printData();
@@ -592,8 +598,8 @@ int main(int argc, char *argv[]) {
             }
             case 2: {
                 string s;
-                s = "pw useradd S"+to_string(original_data.size()+1)+" -g student";
-                system(&s[0]);
+                s = "sudo pw useradd S"+to_string(original_data.size()+1)+" -g student -p S" + to_string(original_data.size()+1);
+                // system(&s[0]);
 
                 original_data.push_back(vector<char>());
                 // Initialize new row with 0 marks
@@ -602,11 +608,12 @@ int main(int argc, char *argv[]) {
                 }
 
                 writeData();
+		break;
             }
             case 3: {
                 string s;
-                s = "pw useradd F"+to_string(original_data[0].size()+1)+" -g faculty";
-                system(&s[0]);
+                s = "sudo pw useradd F"+to_string(original_data[0].size()+1)+" -g faculty -p F" + to_string(original_data.size()+1);
+                // system(&s[0]);
 
                 // Add new column in original_data
                 for(int i=0; i<original_data.size(); i++){
@@ -614,6 +621,7 @@ int main(int argc, char *argv[]) {
                 }
 
                 writeData();
+		break;
             }
         }
         
@@ -624,6 +632,9 @@ int main(int argc, char *argv[]) {
         data.push_back(original_data[index]);
 
         initOtherData();
+	for(int i=1; i<num_cols-1; i++){
+		faculty[i] = "  ";
+	}
 
         cout << "Press 1 : View your marks\nPress 2 : View Average marks of class" << endl;
 
