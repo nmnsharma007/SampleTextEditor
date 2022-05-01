@@ -56,7 +56,7 @@ struct editorConfig {
 };
 
 struct editorConfig E;
-string username = "admin";
+string username = "F1";
 
 /*** terminal ***/
 void die(const char *s) {
@@ -563,18 +563,36 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < num_students; i++) {
             data[i][index] = original_data[i][index];
         }
+
+        initOtherData();
+
+        cout << "Press 1 : Marks of the class\nPress 2 : Average marks of the class\nPress 3 : Highest and Lowest marks of the class" << endl;
+        int c;
+        cin >> c;
+        switch (c) {
+            case 1:
+                enableRawMode();
+                initEditor();
+                if (argc >= 2) {
+                    editorOpen(argv[1]);
+                }
+                while (1) {
+                    editorRefreshScreen();
+                    editorProcessKeypress();
+                }
+                break;
+            case 2:
+                printAverageMarks(username[1] - '0' - 1);
+                break;
+            case 3:
+                printHighestAndLowestMarks(username[1] - '0' - 1);
+                break;
+            default:
+                cout << "Invalid Input !" << endl;
+        }
+
     }
     
-
-    enableRawMode();
-    initEditor();
-    if (argc >= 2) {
-        editorOpen(argv[1]);
-    }
-    while (1) {
-        editorRefreshScreen();
-        editorProcessKeypress();
-    }
     return 0;
 }
 
