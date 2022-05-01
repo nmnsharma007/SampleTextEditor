@@ -55,7 +55,7 @@ struct editorConfig {
 };
 
 struct editorConfig E;
-string username = "admin";
+string username = "F2";
 
 /*** terminal ***/
 void die(const char *s) {
@@ -542,19 +542,14 @@ int main(int argc, char *argv[]) {
         int num_students = original_data.size();
         int num_faculty = original_data[0].size();
 
-        for (int i = 0; i < num_students; i++) {
-            vector<char> temp;
-            for (int j = 0; j < num_faculty; j++) {
-                temp.push_back(' ');
-            }
-            data.push_back(temp);
-        }
-
-
         int index = username[1] - '0' - 1;
         for (int i = 0; i < num_students; i++) {
-            data[i][index] = original_data[i][index];
+            vector<char> temp;
+            temp.push_back(original_data[i][index]);
+            data.push_back(temp);
         }
+        initOtherData();
+        // faculty[1][0] = index + '0';
     }
     
 
