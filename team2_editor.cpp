@@ -35,6 +35,7 @@ enum editorKey {
 /*** data ***/
 
 vector<vector<char>> original_data;
+vector<vector<char>> undo_data;
 
 vector<string> faculty;
 vector<string> student;
@@ -86,6 +87,23 @@ void find_sum(vector<string>& sum, vector<vector<char>>& data) {
             sum[i] = "0" + to_string(total);
         else
             sum[i] = to_string(total);
+    }
+}
+
+void initOtherData(){
+    num_rows = data.size() + 1;
+    num_cols = data[0].size() + 2;
+
+    faculty.push_back("  ");
+    for(int i=1; i<=data[0].size(); i++){
+        faculty.push_back("F" + to_string(i));
+    }
+    faculty.push_back("  ");
+
+    student.push_back("  ");
+    for(int i=1; i<=data.size(); i++){
+        student.push_back("S" + to_string(i));
+        sum.push_back("00");
     }
 }
 
@@ -446,6 +464,27 @@ void editorProcessKeypress() {
                 editMode();
             }
             break;
+        case 'u':
+            if(username[0] == 'F'){
+                int num_students = undo_data.size();
+                int num_faculty = undo_data[0].size();
+
+                int index = username[1] - '0' - 1;
+                for (int i = 0; i < num_students; i++) {
+                    vector<char> temp;
+                    temp.push_back(undo_data[i][index]);
+                    data.push_back(temp);
+                }
+                initOtherData();
+                faculty[1][1] = index + '0' + 1;
+            }
+            else if(username == "admin"){
+                data = undo_data;
+                initOtherData();
+            }
+            original_data = undo_data;
+            writeData();
+            break;
         case 's':
             if(username[0] == 'F'){
                 vector<pair<char,string>> vec;
@@ -505,24 +544,7 @@ void initData(){
     if(temp.size() != 0){
         original_data.push_back(temp);
     }
-
-}
-
-void initOtherData(){
-    num_rows = data.size() + 1;
-    num_cols = data[0].size() + 2;
-
-    faculty.push_back("  ");
-    for(int i=1; i<=data[0].size(); i++){
-        faculty.push_back("F" + to_string(i));
-    }
-    faculty.push_back("  ");
-
-    student.push_back("  ");
-    for(int i=1; i<=data.size(); i++){
-        student.push_back("S" + to_string(i));
-        sum.push_back("00");
-    }
+    undo_data = original_data;
 }
 
 void printData(){
