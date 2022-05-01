@@ -56,11 +56,7 @@ struct editorConfig {
 };
 
 struct editorConfig E;
-<<<<<<< HEAD
-string username = "F2";
-=======
-string username = "F1";
->>>>>>> ae7bdaa7658e63a49999258832a832a95f9608bb
+string username = "admin";
 
 /*** terminal ***/
 void die(const char *s) {
@@ -526,7 +522,7 @@ void printAverageMarks(int col){    //Average marks of class in a subject taught
     int sum = 0;
     int count = data.size();
     for(int i = 0; i < data.size(); i++){
-        sum += (data[i][col] - '0');
+        sum += (data[i][0] - '0');
     }
     cout << "Average marsk of the class : " << sum/count << endl;
 }
@@ -557,6 +553,37 @@ int main(int argc, char *argv[]) {
     if(username == "admin"){
         data = original_data;
         initOtherData();
+
+        cout << "Press 1 : View all marks\nPress 2 : Add user\nPress 3 : Add faculty" << endl;
+        int choice;
+        cin >> choice;
+
+        switch(choice) {
+            case 1: {
+                enableRawMode();
+                initEditor();
+                if (argc >= 2) {
+                    editorOpen(argv[1]);
+                }
+                while (1) {
+                    editorRefreshScreen();
+                    editorProcessKeypress();
+                }
+                break;
+            }
+            case 2: {
+                string s;
+                s = "pw useradd s"+to_string(original_data.size()+1)+" -G student";
+                system(&s[0]);
+
+            }
+            case 3: {
+                string s;
+                s = "pw useradd f"+to_string(original_data[0].size()+1)+" -G faculty";
+                system(&s[0]);
+            }
+        }
+        
     }
 
     if(username[0] == 'S'){
@@ -575,12 +602,9 @@ int main(int argc, char *argv[]) {
             temp.push_back(original_data[i][index]);
             data.push_back(temp);
         }
+        
         initOtherData();
-        faculty[1][1] = index + '0' + 1;
-    }
-    
-
-        initOtherData();
+        faculty[1][1] = index + '0' + 1;    
 
         cout << "Press 1 : Marks of the class\nPress 2 : Average marks of the class\nPress 3 : Highest and Lowest marks of the class" << endl;
         int c;
