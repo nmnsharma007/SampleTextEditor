@@ -55,6 +55,7 @@ struct editorConfig {
 };
 
 struct editorConfig E;
+string username = "admin";
 
 /*** terminal ***/
 void die(const char *s) {
@@ -420,7 +421,9 @@ void editorProcessKeypress() {
             editorMoveCursor(c);
             break;
         case '\r':
-            editMode();
+            if(username[0] != 'S'){
+                editMode();
+            }
             break;
     }
 }
@@ -517,7 +520,7 @@ void printData(){
 int main(int argc, char *argv[]) {
     // struct passwd* userinfo = getpwuid(getuid());
     // string username = userinfo->pw_name;
-    string username = "admin";
+    
 
     initData();
     // printData();
@@ -527,6 +530,31 @@ int main(int argc, char *argv[]) {
     if(username == "admin"){
         data = original_data;
         initOtherData();
+    }
+
+    if(username[0] == 'S'){
+        int index = username[1] - '0' - 1;
+        data.push_back(original_data[index]);
+    }
+
+    if (username[0] == 'F') {
+        // Initialize data array
+        int num_students = original_data.size();
+        int num_faculty = original_data[0].size();
+
+        for (int i = 0; i < num_students; i++) {
+            vector<char> temp;
+            for (int j = 0; j < num_faculty; j++) {
+                temp.push_back(' ');
+            }
+            data.push_back(temp);
+        }
+
+
+        int index = username[1] - '0' - 1;
+        for (int i = 0; i < num_students; i++) {
+            data[i][index] = original_data[i][index];
+        }
     }
     
 
