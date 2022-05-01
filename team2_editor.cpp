@@ -475,10 +475,23 @@ void initOtherData(){
     }
 }
 
-// void writeData(){
-//     int fd = open("marks.csv", O_RDWR);
-    
-// }
+void writeData(){
+    int fd = open("marks.csv", O_WRONLY);
+    lseek(fd, 0, SEEK_SET);
+    system("echo \"\" > marks.csv");
+    string s;
+
+    for(int i=0; i<original_data.size(); i++){
+        s += original_data[i][0];
+        for(int j=1; j<original_data[i].size(); j++){
+            s += ",";
+            s += original_data[i][j];
+        }
+        s += "\n";
+    }
+
+    write(fd, &s[0], s.length());
+}
 
 void printData(){
     for(auto x : original_data){
@@ -508,15 +521,13 @@ int main(int argc, char *argv[]) {
 
     initData();
     // printData();
+
+    // writeData();
     
     if(username == "admin"){
         data = original_data;
         initOtherData();
     }
-
-    // if(username[0] == 'S'){
-
-    // }
     
 
     enableRawMode();
