@@ -585,7 +585,7 @@ int main(int argc, char *argv[]) {
             }
             case 2: {
                 string s;
-                s = "pw useradd s"+to_string(original_data.size()+1)+" -G student";
+                s = "pw useradd S"+to_string(original_data.size()+1)+" -g student";
                 system(&s[0]);
 
                 original_data.push_back(vector<char>());
@@ -598,7 +598,7 @@ int main(int argc, char *argv[]) {
             }
             case 3: {
                 string s;
-                s = "pw useradd f"+to_string(original_data[0].size()+1)+" -G faculty";
+                s = "pw useradd F"+to_string(original_data[0].size()+1)+" -g faculty";
                 system(&s[0]);
 
                 // Add new column in original_data
