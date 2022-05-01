@@ -427,6 +427,15 @@ void editorProcessKeypress() {
             }
             break;
     }
+
+    // move data to original data
+    for (int i = 0; i < data.size(); ++i) {
+        for (int j = 0; j < data[0].size(); ++j) {
+            original_data[i][j] = data[i][j];
+        }
+    }
+
+    // writeData();
 }
 
 /*** init ***/
@@ -576,14 +585,28 @@ int main(int argc, char *argv[]) {
             }
             case 2: {
                 string s;
-                s = "pw useradd s"+to_string(original_data.size()+1)+" -G student";
+                s = "pw useradd S"+to_string(original_data.size()+1)+" -g student";
                 system(&s[0]);
 
+                original_data.push_back(vector<char>());
+                // Initialize new row with 0 marks
+                for(int i=0; i<original_data[0].size(); i++){
+                    original_data[original_data.size()-1].push_back('0');
+                }
+
+                writeData();
             }
             case 3: {
                 string s;
-                s = "pw useradd f"+to_string(original_data[0].size()+1)+" -G faculty";
+                s = "pw useradd F"+to_string(original_data[0].size()+1)+" -g faculty";
                 system(&s[0]);
+
+                // Add new column in original_data
+                for(int i=0; i<original_data.size(); i++){
+                    original_data[i].push_back('0');
+                }
+
+                writeData();
             }
         }
         
