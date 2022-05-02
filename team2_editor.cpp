@@ -192,39 +192,10 @@ int getWindowSize(int *rows, int *cols) {
 
 /*** row operations ***/
 
-void editorAppendRow(char *s, size_t len) {
-    E.row = (erow *)realloc(E.row, sizeof(erow) * (E.numrows + 1));
-    int at = E.numrows;
-    E.row[at].size = len;
-    E.row[at].chars = (char *)malloc(len + 1);
-    memcpy(E.row[at].chars, s, len);
-    E.row[at].chars[len] = '\0';
-    ++E.numrows;
-}
-
 void editorInsertChar(int c) {
     data[E.cy / 4 - 1][E.cx / 6 - 1] = c;
 }
 
-/*** file i/o ***/
-void editorOpen(char *filename) {
-    FILE *fp = fopen(filename, "r");
-    if (!fp) {
-        die("fopen");
-    }
-
-    char *line = NULL;
-    size_t linecap = 0;
-    ssize_t linelen;
-    while ((linelen = getline(&line, &linecap, fp)) != -1) {
-        while (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
-            --linelen;
-        }
-        editorAppendRow(line, linelen);
-    }
-    free(line);
-    fclose(fp);
-}
 
 /*** append buffer ***/
 struct abuf {
@@ -309,16 +280,6 @@ void editorDrawRows(struct abuf *ab) {
     snprintf(buf, sizeof(buf), "\nS%d F%d\n", E.cy / 4, E.cx / 6);
     abAppend(ab, buf, strlen(buf));
 
-}
-
-void editorDrawStatusBar(struct abuf *ab) {
-    abAppend(ab, "\x1b[7m", 4);
-    int len = 0;
-    while (len < E.screencols) {
-        abAppend(ab, " ", 1);
-        ++len;
-    }
-    abAppend(ab, "\x1b[m", 3);
 }
 
 void editorRefreshScreen() {
@@ -477,7 +438,7 @@ void initEditor() {
 }
 
 void initData(){
-    int fd = open("/home/finalProject/admin/SampleTextEditor/marks.csv", O_RDWR);
+    int fd = open("marks.csv", O_RDWR);
     if(fd == -1){
 	    perror("Error");
     }
@@ -565,14 +526,13 @@ void printAvgMarksforStudent(){
 
 }
 
-int main(int argc, char *argv[]) {
+int main() {
     struct passwd* userinfo = getpwuid(getuid());
     username = userinfo->pw_name;
     setuid(1017); 
 
     initData();
     // printData();
-
     // writeData();
     
     if(username == "admin"){
@@ -587,9 +547,6 @@ int main(int argc, char *argv[]) {
             case 1: {
                 enableRawMode();
                 initEditor();
-                if (argc >= 2) {
-                    editorOpen(argv[1]);
-                }
                 while (1) {
                     editorRefreshScreen();
                     editorProcessKeypress();
@@ -645,9 +602,6 @@ int main(int argc, char *argv[]) {
             case 1: {
                 enableRawMode();
                 initEditor();
-                if (argc >= 2) {
-                    editorOpen(argv[1]);
-                }
                 while (1) {
                     editorRefreshScreen();
                     editorProcessKeypress();
@@ -686,9 +640,6 @@ int main(int argc, char *argv[]) {
             case 1:
                 enableRawMode();
                 initEditor();
-                if (argc >= 2) {
-                    editorOpen(argv[1]);
-                }
                 while (1) {
                     editorRefreshScreen();
                     editorProcessKeypress();
@@ -713,9 +664,6 @@ int main(int argc, char *argv[]) {
                 writeData();
                 enableRawMode();
                 initEditor();
-                if (argc >= 2) {
-                    editorOpen(argv[1]);
-                }
                 while (1) {
                     editorRefreshScreen();
                     editorProcessKeypress();
