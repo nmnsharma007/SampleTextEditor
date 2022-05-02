@@ -555,8 +555,8 @@ int main() {
             }
             case 2: {
                 string s;
-                s = "sudo pw useradd S"+to_string(original_data.size()+1)+" -g student -p S" + to_string(original_data.size()+1);
-                // system(&s[0]);
+                s = "sudo pw useradd S"+to_string(original_data.size()+1)+" -g student -w yes";
+                system(&s[0]);
 
                 original_data.push_back(vector<char>());
                 // Initialize new row with 0 marks
@@ -565,12 +565,12 @@ int main() {
                 }
 
                 writeData();
-		break;
+		        break;
             }
             case 3: {
                 string s;
-                s = "sudo pw useradd F"+to_string(original_data[0].size()+1)+" -g faculty -p F" + to_string(original_data.size()+1);
-                // system(&s[0]);
+                s = "sudo pw useradd F"+to_string(original_data[0].size()+1)+" -g faculty -w yes";
+                system(&s[0]);
 
                 // Add new column in original_data
                 for(int i=0; i<original_data.size(); i++){
@@ -578,7 +578,7 @@ int main() {
                 }
 
                 writeData();
-		break;
+		        break;
             }
         }
         
