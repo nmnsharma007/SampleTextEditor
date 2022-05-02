@@ -527,9 +527,9 @@ void printAvgMarksforStudent(){
 }
 
 int main() {
-    struct passwd* userinfo = getpwuid(getuid());
-    username = userinfo->pw_name;
-    setuid(1017); 
+    // struct passwd* userinfo = getpwuid(getuid());
+    // username = userinfo->pw_name;
+    // setuid(1017); 
 
     initData();
     // printData();
